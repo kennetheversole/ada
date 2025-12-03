@@ -332,6 +332,13 @@ Respond with ONLY the category name, nothing else.")
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Check for --version flag
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() > 1 && (args[1] == "--version" || args[1] == "-v") {
+        println!("ada {}", env!("CARGO_PKG_VERSION"));
+        return Ok(());
+    }
+
     // Don't initialize tracing to avoid interfering with TUI
     // tracing_subscriber::fmt::init();
 

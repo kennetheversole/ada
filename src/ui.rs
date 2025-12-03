@@ -36,10 +36,16 @@ pub struct App {
 
 impl App {
     pub fn new() -> Self {
+        let welcome_msg = if let Ok(home) = std::env::var("HOME") {
+            format!("Welcome to Ada. Config: {}/.ada/config | Type /help for info", home)
+        } else {
+            "Welcome to Ada. Type /help for info".to_string()
+        };
+
         Self {
             messages: vec![Message {
                 role: MessageRole::System,
-                content: "Welcome to Ada. Type /help for commands, or chat with GPT-4.".to_string(),
+                content: welcome_msg,
             }],
             input: String::new(),
             should_quit: false,
@@ -173,9 +179,31 @@ fn render_messages(f: &mut Frame, app: &App, area: Rect) {
         text.push_str("✢ Working… (esc to interrupt)\n");
     }
 
+    // Count total lines (accounting for wrapping would be complex, so we approximate)
+    let content_lines = text.lines().count() as u16;
+    let available_height = area.height;
+
+    // Add 6 lines of bottom padding
+    text.push_str("\n\n\n\n\n\n");
+    let content_lines_with_padding = content_lines + 6;
+
+    let scroll_offset;
+
+    // If content is less than available space, add padding at the top to push to bottom
+    if content_lines_with_padding < available_height {
+        let padding = available_height.saturating_sub(content_lines_with_padding);
+        let mut padded_text = "\n".repeat(padding as usize);
+        padded_text.push_str(&text);
+        text = padded_text;
+        scroll_offset = 0; // No scroll needed when padded
+    } else {
+        // Content is larger than viewport, scroll to show the bottom (newest)
+        scroll_offset = content_lines_with_padding.saturating_sub(available_height);
+    }
+
     let paragraph = Paragraph::new(text)
         .wrap(Wrap { trim: false })
-        .scroll((0, 0));
+        .scroll((scroll_offset, 0));
 
     f.render_widget(paragraph, area);
 }

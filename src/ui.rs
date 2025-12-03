@@ -183,8 +183,8 @@ fn render_messages(f: &mut Frame, app: &App, area: Rect) {
     let content_lines = text.lines().count() as u16;
     let available_height = area.height;
 
-    // Add 6 lines of bottom padding
-    text.push_str("\n\n\n\n\n\n");
+    // Add 6 lines of bottom padding (with spaces to ensure they render)
+    text.push_str("\n \n \n \n \n \n ");
     let content_lines_with_padding = content_lines + 6;
 
     let scroll_offset;
